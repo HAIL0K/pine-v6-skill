@@ -1,0 +1,7 @@
+//@version=6
+indicator("Known-bad canary: must FAIL to compile", overlay = true)
+// Every line below is a v6 compile error. compile_examples.py requires this file to fail;
+// if it ever "passes", the compile check is not checking anything.
+bool flag = na
+plot(close, transp = 50)
+plot(close, linewidth = 0)

@@ -1,0 +1,8 @@
+{
+  "name": "pine-v6",
+  "description": "Write, fix and port TradingView Pine Script v6 indicators, with an optional compile loop through a TradingView Desktop MCP server.",
+  "version": "1.0.0",
+  "author": { "name": "HAIL0K" },
+  "license": "MIT",
+  "keywords": ["tradingview", "pine-script", "pine-v6", "indicators", "skill"]
+}

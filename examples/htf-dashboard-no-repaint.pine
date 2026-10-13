@@ -1,0 +1,35 @@
+//@version=6
+indicator("HTF trend dashboard (no repaint)", shorttitle = "HTF dash", overlay = true)
+
+// ---- Inputs ----
+string tfInput     = input.timeframe("1D", "Higher timeframe", group = "Data")
+int    lengthInput = input.int(50, "SMA length", minval = 1, group = "Data")
+int    rsiLength   = input.int(14, "RSI length", minval = 2, group = "Data")
+color  upColor     = input.color(color.teal, "Up", group = "Style")
+color  downColor   = input.color(color.red, "Down", group = "Style")
+
+// ---- Requests: one call per context, [1] + lookahead_on so nothing repaints ----
+[htfClose, htfSma, htfRsi] = request.security(syminfo.tickerid, tfInput,
+     [close[1], ta.sma(close, lengthInput)[1], ta.rsi(close, rsiLength)[1]],
+     lookahead = barmerge.lookahead_on)
+
+int trend = na(htfSma) ? 0 : htfClose > htfSma ? 1 : -1
+
+// ---- Visuals ----
+plot(htfSma, "HTF SMA (previous confirmed)", color = trend == 1 ? upColor : downColor, linewidth = 2, style = plot.style_stepline)
+bgcolor(trend == 1 ? color.new(upColor, 92) : trend == -1 ? color.new(downColor, 92) : na, title = "HTF trend")
+
+var table dash = table.new(position.top_right, 2, 3, border_width = 1, bgcolor = color.new(color.black, 80))
+if barstate.islast
+    table.cell(dash, 0, 0, "HTF " + tfInput, text_color = color.white)
+    table.cell(dash, 1, 0, trend == 1 ? "Up" : trend == -1 ? "Down" : "n/a", text_color = trend == 1 ? upColor : downColor)
+    table.cell(dash, 0, 1, "Close vs SMA", text_color = color.white)
+    table.cell(dash, 1, 1, na(htfSma) ? "n/a" : str.tostring((htfClose / htfSma - 1) * 100, "#.##") + "%", text_color = color.white)
+    table.cell(dash, 0, 2, "RSI", text_color = color.white)
+    table.cell(dash, 1, 2, str.tostring(htfRsi, "#.#"), text_color = color.white)
+
+// ---- Alerts ----
+bool flipUp   = trend == 1 and trend[1] == -1
+bool flipDown = trend == -1 and trend[1] == 1
+alertcondition(flipUp, "HTF trend flips up", "{{ticker}} higher-timeframe trend turned up")
+alertcondition(flipDown, "HTF trend flips down", "{{ticker}} higher-timeframe trend turned down")

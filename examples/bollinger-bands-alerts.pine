@@ -1,0 +1,47 @@
+//@version=6
+indicator("Bollinger Bands + alerts", shorttitle = "BB+", overlay = true, max_labels_count = 500)
+
+// ---- Inputs ----
+int   lengthInput = input.int(20, "Length", minval = 1, group = "Bands")
+float multInput   = input.float(2.0, "StdDev multiplier", minval = 0.1, step = 0.1, group = "Bands")
+color bandColor   = input.color(color.gray, "Band colour", group = "Style")
+color basisColor  = input.color(color.orange, "Basis colour", group = "Style")
+bool  showLabels  = input.bool(true, "Label confirmed crosses", group = "Style")
+bool  debugMode   = input.bool(false, "Debug checks", group = "Debug")
+
+// ---- Calculations ----
+float basis = ta.sma(close, lengthInput)
+float dev   = multInput * ta.stdev(close, lengthInput)
+float upper = basis + dev
+float lower = basis - dev
+
+// Stateful calls run every bar in the global scope, then get combined.
+bool crossUpRaw   = ta.crossover(close, upper)
+bool crossDownRaw = ta.crossunder(close, lower)
+bool crossUp      = crossUpRaw and barstate.isconfirmed
+bool crossDown    = crossDownRaw and barstate.isconfirmed
+
+// ---- Invariants ----
+if debugMode and not na(upper) and (upper < basis or basis < lower)
+    log.error("band order broken at bar {0}: {1} / {2} / {3}", bar_index, upper, basis, lower)
+if debugMode and (bar_index % 500 == 0 or barstate.islast)
+    log.info("bar {0} basis {1} upper {2} lower {3}", bar_index, basis, upper, lower)
+
+// ---- Visuals ----
+plot(basis, "Basis", color = basisColor, linewidth = 2)
+upperPlot = plot(upper, "Upper", color = bandColor)
+lowerPlot = plot(lower, "Lower", color = bandColor)
+fill(upperPlot, lowerPlot, color = color.new(bandColor, 92), title = "Band fill")
+
+if showLabels and crossUp
+    label.new(bar_index, high, "▲", style = label.style_label_down, color = color.teal, textcolor = color.white, size = size.tiny)
+if showLabels and crossDown
+    label.new(bar_index, low, "▼", style = label.style_label_up, color = color.red, textcolor = color.white, size = size.tiny)
+
+// ---- Alerts ----
+alertcondition(crossUp, "Close above upper band", "{{ticker}} closed above the upper band on {{interval}}")
+alertcondition(crossDown, "Close below lower band", "{{ticker}} closed below the lower band on {{interval}}")
+if crossUp
+    alert(syminfo.ticker + " closed above upper band at " + str.tostring(close, format.mintick), alert.freq_once_per_bar_close)
+if crossDown
+    alert(syminfo.ticker + " closed below lower band at " + str.tostring(close, format.mintick), alert.freq_once_per_bar_close)

@@ -1,0 +1,16 @@
+{
+  "name": "pine-v6-skill",
+  "owner": {
+    "name": "HAIL0K"
+  },
+  "metadata": {
+    "description": "A Claude skill for writing and verifying TradingView Pine Script v6 indicators."
+  },
+  "plugins": [
+    {
+      "name": "pine-v6",
+      "source": "./",
+      "description": "Pine Script v6 indicator skill for Claude: v6 compiler traps, platform limits, visuals cookbook, and an MCP compile loop."
+    }
+  ]
+}
