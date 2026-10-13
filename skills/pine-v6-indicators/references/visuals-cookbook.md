@@ -1,6 +1,6 @@
 # Visuals cookbook
 
-Snippets for the visual side of indicators. Each one is a fragment to drop into a `//@version=6` indicator: assume the inputs and variables it names exist. Complete scripts that use these patterns are in the repo's `examples/` folder; `examples/visuals-cookbook-smoke.pine` holds the drawing snippets in one script (not yet compiled; run `scripts/compile_examples.py`).
+Snippets for the visual side of indicators. Each one is a fragment to drop into a `//@version=6` indicator: assume the inputs and variables it names exist. Complete scripts that use these patterns are in the repo's `examples/` folder; `examples/visuals-cookbook-smoke.pine` holds the drawing snippets in one script, which compiled with 0 errors and 0 warnings on 2026-10-13.
 
 Sources (checked 2026-10-13): [Plots](https://www.tradingview.com/pine-script-docs/visuals/plots/), [Lines and boxes](https://www.tradingview.com/pine-script-docs/visuals/lines-and-boxes/), [Text and shapes](https://www.tradingview.com/pine-script-docs/visuals/text-and-shapes/), [Tables](https://www.tradingview.com/pine-script-docs/visuals/tables/), [Colors](https://www.tradingview.com/pine-script-docs/visuals/colors/).
 

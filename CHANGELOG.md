@@ -10,4 +10,4 @@ First public release, built from a private skill used since 2026-08.
 - The v6 rules were checked against the TradingView docs (2026-10-13). Each reference names its sources, and the gotchas file marks every rule *documented* or *observed*.
 - Fixed the old cookbook's live-line example, which created a new line on every realtime tick, and its higher-timeframe advice: `lookahead_off` alone still repaints.
 - Removed one user's personal preferences and client-specific tool names.
-- Added example scripts, a known-bad canary, `check_skill.py` (CI), `compile_examples.py` (opt-in), and a release workflow that attaches the claude.ai zip.
+- Added example scripts (3 of 3 compile with 0 errors and 0 warnings on TradingView's compiler, 2026-10-13, as do the 2 complete scripts in the skill's docs), a known-bad canary (fails as expected), `check_skill.py` (CI), `compile_examples.py` (opt-in), and a release workflow that attaches the claude.ai zip.
