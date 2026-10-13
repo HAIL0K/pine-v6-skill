@@ -5,7 +5,7 @@ description: Write, fix, port or optimise TradingView Pine Script v6 indicators 
 
 # Pine Script v6 indicators
 
-Write TradingView indicators in Pine Script v6, then prove they work. A script counts as done when the checks in the loop below have passed. Looking right is not enough. The official manual is the authority: https://www.tradingview.com/pine-script-docs/ (reference manual: https://www.tradingview.com/pine-script-reference/v6/). The reference files here hold the parts models most often get wrong. Each claim carries a docs link and a verification date.
+Write TradingView indicators in Pine Script v6, then prove they work. A script counts as done when the checks in the loop below have passed. Looking right is not enough. The official manual is the authority: https://www.tradingview.com/pine-script-docs/ (reference manual: https://www.tradingview.com/pine-script-reference/v6/). The reference files here hold the parts models most often get wrong. Each file names its docs sources and the date they were checked, and `references/pine-v6-gotchas.md` marks every rule as *documented* or *observed*.
 
 ## The loop
 
@@ -22,8 +22,8 @@ Run every step. When a step cannot run in the current setup, say so on the hand-
 4. **Compile.**
    - *With a TradingView MCP connected:* follow `references/tradingview-mcp.md`. Inject, compile, read errors, fix, and repeat until there are 0 errors. Fix every warning or justify it in one line.
    - *Without one:* give the user the file and ask them to paste the Pine Editor's full error and warning output. Iterate on what they paste. Never claim a clean compile you did not see.
-5. **Runtime.** A clean compile can still fail when the script runs, with errors such as RE10139 (memory) or RE10143 (historical buffer). Run the script on at least two symbols and two timeframes, one of them intraday. Stop when the study shows no runtime error and the Pine Logs hold no `log.error` from the `debugMode` guards.
-6. **Values.** Recompute the core series independently, for example in Python from the same OHLCV. Compare it with the script's output at 5 or more spot bars spread across history: plotted values via the MCP, or `log.info` lines the user pastes. The tolerance is one tick, or 1e-6 relative for derived values. A mismatch is a bug until it is explained.
+5. **Runtime.** A clean compile can still fail when the script runs, with errors such as RE10139 (memory) or RE10143 (historical buffer). Run the script on at least two symbols and two timeframes, one of them intraday. A failing study shows a red error mark in its chart legend. With the MCP, look for it in a chart screenshot; without one, ask the user. Stop when no study shows an error and the Pine Logs hold no `log.error` from the `debugMode` guards.
+6. **Values.** Recompute the core series independently, for example in Python from the same OHLCV. Compare it with the script's own `log.info` spot prints at 5 or more bars spread across history; read them with the MCP's console tool, or ask the user to paste the Pine Logs. Chart read-outs show only the bar under the crosshair, so they are not a source for historical values. The tolerance is one tick, or 1e-6 relative for derived values. A mismatch is a bug until it is explained.
 7. **Repainting.** Confirm that every signal and higher-timeframe value uses a non-repainting pattern (`references/correctness.md#repainting`), unless the spec allowed repainting. With the MCP, step through bar replay and check that confirmed signals do not move.
 8. **Visual.** Take a screenshot, or ask the user to look. Judge the result against the spec, not against "looks fine".
 9. **Hand-off.** Report verification as numbers, for example: "0 compile errors, 0 warnings, 0 runtime errors on 2 symbols × 2 timeframes, 5 of 5 spot bars match". Then give a *Not verified* line, which lists every step above that could not run.
@@ -41,10 +41,14 @@ bool  debugMode   = input.bool(false, "Debug checks", group = "Debug")
 
 // ---- Calculations ----
 float basis = ta.sma(close, lengthInput)
+float hh    = ta.highest(high, lengthInput)  // stateful ta.* calls stay in the global scope
+float ll    = ta.lowest(low, lengthInput)
 
 // ---- Invariants (debugMode) ----
-if debugMode and not na(basis) and (basis > ta.highest(high, lengthInput) or basis < ta.lowest(low, lengthInput))
+if debugMode and not na(basis) and (basis > hh or basis < ll)
     log.error("basis outside the high/low range at bar {0}", bar_index)
+if debugMode and (bar_index % 500 == 0 or barstate.islast)
+    log.info("bar {0} basis {1}", bar_index, basis)  // spot prints for the value check
 
 // ---- Visuals ----
 plot(basis, "Basis", color = upColor, linewidth = 2)

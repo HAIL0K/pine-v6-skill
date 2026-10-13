@@ -1,6 +1,8 @@
 # Visuals cookbook
 
-Snippets for the visual side of indicators. Each one is a fragment to drop into a `//@version=6` indicator: assume the inputs and variables it names exist. Complete, compile-checked scripts are in the repo's `examples/` folder.
+Snippets for the visual side of indicators. Each one is a fragment to drop into a `//@version=6` indicator: assume the inputs and variables it names exist. Complete scripts that use these patterns are in the repo's `examples/` folder; `examples/visuals-cookbook-smoke.pine` holds the drawing snippets in one compilable script.
+
+Sources (checked 2026-10-13): [Plots](https://www.tradingview.com/pine-script-docs/visuals/plots/), [Lines and boxes](https://www.tradingview.com/pine-script-docs/visuals/lines-and-boxes/), [Text and shapes](https://www.tradingview.com/pine-script-docs/visuals/text-and-shapes/), [Tables](https://www.tradingview.com/pine-script-docs/visuals/tables/), [Colors](https://www.tradingview.com/pine-script-docs/visuals/colors/).
 
 ## Plots and fills
 
@@ -16,7 +18,7 @@ hline(70, "Overbought", color = color.new(color.red, 50), linestyle = hline.styl
 ```
 
 - Transparency is set with `color.new(c, 0..100)`; there is no `transp=`.
-- To hide a plot from the chart but keep it in the Data Window and alerts, use `display = display.data_window`. `display.none` hides it everywhere, although other scripts can still read it as an `input.source`.
+- To hide a plot from the chart but keep it in the Data Window, use `display = display.data_window`. `display.none` hides it everywhere, although other scripts can still read it as an `input.source`.
 - A plot whose colour is computed (as in the delta example) still compiles, but loses its colour picker in the Style tab.
 
 ## Signal markers

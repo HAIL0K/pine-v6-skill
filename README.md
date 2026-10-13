@@ -27,7 +27,7 @@ skills/pine-v6-indicators/
     limits-and-performance.md      platform limits, Pine Profiler, optimisation order
     visuals-cookbook.md            plots, markers, lines/boxes/labels, tables, colours
     tradingview-mcp.md             compile/verify loop through the MCP + known hazards
-examples/                          complete scripts, compile-checked
+examples/                          complete scripts (compile with scripts/compile_examples.py)
   broken/v5-traps.pine             known-bad canary: must FAIL to compile
 scripts/
   check_skill.py                   structure lint (runs in CI)
@@ -35,7 +35,7 @@ scripts/
   build_zip.py                     builds the zip for claude.ai upload
 ```
 
-Every rule in the references is marked *documented* (with a link to the official [Pine Script v6 docs](https://www.tradingview.com/pine-script-docs/)) or *observed* (seen in real compiles, not in the docs). They were checked against the docs on 2026-10-13. Where this repo and the live docs disagree, the docs win; please open an issue.
+Each reference file names the official [Pine Script v6 docs](https://www.tradingview.com/pine-script-docs/) pages it is based on and the date they were checked (2026-10-13). The gotchas file marks every rule *documented* (with a link) or *observed* (seen in real compiles, not in the docs), and the MCP file is observed throughout. Where this repo and the live docs disagree, the docs win; please open an issue.
 
 ## Install
 

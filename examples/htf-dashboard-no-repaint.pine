@@ -29,6 +29,8 @@ if barstate.islast
     table.cell(dash, 1, 2, str.tostring(htfRsi, "#.#"), text_color = color.white)
 
 // ---- Alerts ----
+// The trend uses only confirmed higher-timeframe values ([1] + lookahead_on), so a flip
+// cannot reverse within the chart bar and needs no barstate.isconfirmed gate.
 bool flipUp   = trend == 1 and trend[1] == -1
 bool flipDown = trend == -1 and trend[1] == 1
 alertcondition(flipUp, "HTF trend flips up", "{{ticker}} higher-timeframe trend turned up")

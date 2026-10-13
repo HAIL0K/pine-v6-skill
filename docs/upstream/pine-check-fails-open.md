@@ -12,4 +12,4 @@ Agents use `pine_check` as a compile gate. A malformed or changed reply turns ev
 
 ## Ask
 
-When `result` is missing or is not an object, return `success: false` (or `compiled: null`) with the raw reply attached, and add a test that feeds `{}` into the parser and expects a non-pass. We have not checked whether upstream `tradesdontlie/tradingview-mcp` has the same code.
+When `result` is missing or is not an object, return `success: false` (or `compiled: null`) with the raw reply attached, and add a test that feeds `{}` into the parser and expects a non-pass. The same `check()` code (the `compiled = errors.length === 0` line) is in both `tradesdontlie/tradingview-mcp` and `LewisWJackson/tradingview-mcp-jackson` at their default-branch heads, as read on 2026-10-13, so the fix belongs upstream.

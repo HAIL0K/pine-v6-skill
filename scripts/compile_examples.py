@@ -6,9 +6,10 @@ uses). Only the example scripts in this repo are sent.
 
 Fails closed:
   - a reply without a compile result is UNKNOWN, which counts as a FAIL, not a pass;
-  - every file under examples/broken/ must FAIL to compile (canary). If a canary
+  - every file under examples/broken/ must FAIL with compiler diagnostics (canary). If a canary
     passes, the check is not checking anything and the whole run fails;
-  - finding 0 examples or 0 canaries is a FAIL.
+  - finding 0 examples or 0 canaries is a FAIL;
+  - an example that compiles with warnings is a FAIL.
 
 Usage: python scripts/compile_examples.py [--yes]
 """
@@ -40,9 +41,9 @@ def compile_source(source: str) -> tuple[str, list[str], list[str]]:
     except Exception as e:  # network, HTTP or JSON failure
         return "unknown", [f"request failed: {e}"], []
     inner = payload.get("result") if isinstance(payload, dict) else None
-    if isinstance(payload, dict) and isinstance(payload.get("error"), str) and payload["error"]:
-        return "error", [payload["error"]], []
     if not isinstance(inner, dict):
+        # A bare error string (rate limit, auth, outage) is not a compiler diagnostic, so
+        # it must not satisfy a canary either.
         return "unknown", [f"no compile result in reply: {str(payload)[:200]}"], []
     fmt = lambda d: f"L{d.get('start', {}).get('line')}: {d.get('message')}"
     errors = [fmt(e) for e in inner.get("errors2") or []]
@@ -66,7 +67,9 @@ def main() -> int:
         rel = path.relative_to(ROOT).as_posix()
         status, errors, warnings = compile_source(path.read_text(encoding="utf-8"))
         expect_fail = path in canaries
-        passed = (status == "error") if expect_fail else (status == "ok")
+        # Examples must compile with no warnings either: the skill says every warning is
+        # fixed or justified, and an example has nobody to justify it.
+        passed = (status == "error") if expect_fail else (status == "ok" and not warnings)
         tag = "PASS" if passed else "FAIL"
         print(f"{tag}  {rel}  status={status} errors={len(errors)} warnings={len(warnings)}")
         for line in errors + [f"warning {w}" for w in warnings]:

@@ -43,5 +43,5 @@ if barstate.islast
 
 int regime = close > basis ? 1 : close < basis ? -1 : 0
 bgcolor(regime == 1 ? color.new(color.green, 90) : regime == -1 ? color.new(color.red, 90) : na, title = "Regime")
-plotshape(crossUp, "Long", style = shape.triangleup, location = location.belowbar, color = color.green, size = size.small)
+plotshape(crossUp and barstate.isconfirmed, "Long", style = shape.triangleup, location = location.belowbar, color = color.green, size = size.small)
 plot(basis, "Basis", color = color.blue, linewidth = 2, display = display.all)

@@ -2,6 +2,8 @@
 
 This file applies when a TradingView Desktop MCP server is connected. The one this was written against is [tradingview-mcp-jackson](https://github.com/LewisWJackson/tradingview-mcp-jackson) by Lewis Jackson, a fork of [tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp) by @tradesdontlie. It drives a locally running TradingView Desktop through the Chrome DevTools Protocol. Tool names below are the server's own. In Claude Code they appear prefixed with the name you gave the server in your MCP config: a server named `tradingview` gives `mcp__tradingview__pine_smart_compile`.
 
+Sources: the server's source code at commit `01c193a` (read 2026-10-13), and its use on TradingView Desktop from 2026-09 to 2026-10. Everything here is *observed*; TradingView does not document these tools. Check your installed version before trusting a detail.
+
 When no such server is connected, run the loop by hand: the user pastes the compiler output, the runtime errors and the Pine Logs. Never claim a step the tools did not show you.
 
 ## Before touching the editor (hazards, observed 2026-09 to 2026-10)
@@ -22,8 +24,8 @@ If you are unsure what the editor holds, stop and ask the user. That beats overw
 | Loop step | Tools | Pass when |
 |---|---|---|
 | Compile | `pine_set_source`, then `pine_smart_compile`; `pine_get_errors` | 0 errors; every warning fixed or justified |
-| Runtime | `chart_get_state` for the study's entity and status; `pine_get_console` for Pine Logs; `chart_set_symbol` and `chart_set_timeframe` for 2 symbols × 2 timeframes | no runtime error shown on the study; no `log.error` lines |
-| Values | `data_get_ohlcv` for the bars to recompute from; `data_get_study_values` and `data_get_pine_tables` / `data_get_pine_labels` (pass `study_filter`) for the script's numbers; `pine_get_console` for `log.info` spot prints | N of N spot bars match within tolerance |
+| Runtime | `chart_set_symbol` and `chart_set_timeframe` for 2 symbols × 2 timeframes; `capture_screenshot` (region `chart`) to see the study legend; `pine_get_console` for Pine Logs | no red error mark on the study in the legend; no `log.error` lines. `chart_get_state` lists only study ids and names, not their error status, so it cannot pass this step. If you can't tell from the screenshot, ask the user. |
+| Values | `data_get_ohlcv` for the bars to recompute from; `pine_get_console` for the script's `log.info` spot prints | N of N spot bars match within tolerance. `data_get_study_values` reads only the bar under the crosshair, so use it for the last bar at most. |
 | Repainting | `replay_start`, `replay_step`, `replay_stop` | confirmed signals and higher-timeframe values do not change as replay advances |
 | Visual | `capture_screenshot` (region `chart`) | matches the spec |
 | Save | `pine_save`, then `pine_list_scripts` to confirm the name | the saved name is the one intended |
