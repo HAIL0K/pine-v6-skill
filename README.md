@@ -65,6 +65,8 @@ python scripts/check_skill.py                # structure, links, leaked personal
 python scripts/compile_examples.py --yes     # sends ONLY examples/*.pine to TradingView's guest compiler
 ```
 
+`check_skill.py` also reads an untracked, git-ignored `.local-denylist` (one regex per line) or `PINE_SKILL_DENYLIST`, for names you never want published; CI has neither, so that check runs only on your machine.
+
 `compile_examples.py` fails closed. A reply without a compile result counts as a failure, and the known-bad canary must fail before any pass is trusted. It uses an undocumented TradingView endpoint (the same one the MCP's `pine_check` uses), so it is opt-in and not run in CI.
 
 ## Credits

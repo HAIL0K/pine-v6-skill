@@ -41,6 +41,8 @@ def compile_source(source: str) -> tuple[str, list[str], list[str]]:
     except Exception as e:  # network, HTTP or JSON failure
         return "unknown", [f"request failed: {e}"], []
     inner = payload.get("result") if isinstance(payload, dict) else None
+    if isinstance(payload, dict) and payload.get("error"):
+        return "unknown", [f"service error: {str(payload['error'])[:200]}"], []
     if not isinstance(inner, dict):
         # A bare error string (rate limit, auth, outage) is not a compiler diagnostic, so
         # it must not satisfy a canary either.

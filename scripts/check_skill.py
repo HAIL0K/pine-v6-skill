@@ -39,6 +39,7 @@ MUST_HAVE_PINE = [
 ]
 MANIFESTS = [".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"]
 SELF = "scripts/check_skill.py"  # holds the patterns themselves
+BINARY_SUFFIXES = {".zip", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf"}
 
 errors: list[str] = []
 
@@ -120,10 +121,10 @@ def main() -> int:
         if rel == ".local-denylist":
             fail(".local-denylist is not git-ignored; it would publish the names in it")
             continue
-        try:
-            content = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue  # binary file
+        if path.suffix.lower() in BINARY_SUFFIXES:
+            continue
+        # Never skip text that fails to decode: a cp1252 file can still leak a path.
+        content = path.read_text(encoding="utf-8", errors="replace")
         scanned += 1
         if rel != SELF:
             for pat in forbidden:
