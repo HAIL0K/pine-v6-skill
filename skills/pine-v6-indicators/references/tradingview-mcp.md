@@ -4,7 +4,7 @@ This file applies when a TradingView Desktop MCP server is connected. The one th
 
 Sources: the server's source code at commit `01c193a` (read 2026-10-13), and its use on TradingView Desktop from 2026-09 to 2026-10. Everything here is *observed*; TradingView does not document these tools. Check your installed version before trusting a detail.
 
-When no such server is connected, run the loop by hand: the user pastes the compiler output, the runtime errors and the Pine Logs. Never claim a step the tools did not show you.
+When no such server is connected, the user compiles: they paste the script into the Pine Editor and send back any error text. Never claim a step the tools did not show you.
 
 ## Before touching the editor (hazards, observed 2026-09 to 2026-10)
 
@@ -19,9 +19,11 @@ These cost real saved scripts. Check them every time.
 
 If you are unsure what the editor holds, stop and ask the user. That beats overwriting their work.
 
-## The loop with tools
+## Checking on the chart
 
-| Loop step | Tools | Pass when |
+Compile and visual are the normal path. The other rows are the deeper checks from `correctness.md`, to use when they are wanted.
+
+| Check | Tools | Pass when |
 |---|---|---|
 | Compile | `pine_set_source`, then `pine_smart_compile`; `pine_get_errors` | 0 errors; every warning fixed or justified |
 | Runtime | `chart_set_symbol` and `chart_set_timeframe` for 2 symbols × 2 timeframes; `capture_screenshot` (region `chart`) to see the study legend; `pine_get_console` for Pine Logs | no red error mark on the study in the legend; no `log.error` lines. `chart_get_state` lists only study ids and names, not their error status, so it cannot pass this step. If you can't tell from the screenshot, ask the user. |
@@ -36,7 +38,7 @@ Read the source back with `pine_get_source` only when you must. It can return a 
 
 `pine_check` sends the source to TradingView's compile service as a guest, without using the chart. It is useful as a quick syntax gate, but note the caveats:
 
-- **It checks compilation only.** It gives no runtime errors, no values and no repainting signal, so steps 5 to 7 of the loop still need the chart or the user.
+- **It checks compilation only.** It gives no runtime errors, no values and no repainting signal, so runtime, value and repainting checks still need the chart or the user.
 - **The source leaves your machine** and goes to TradingView. Do not send proprietary logic without the user's consent.
 - **It can report a false pass.** In the version read on 2026-10-13 (`src/core/pine.js`, around line 233), a reply with no compile result counts as `compiled: true` with zero errors. Before trusting a run of passes, run a script with a known error through it and confirm it fails. Treat "compiled" with no diagnostics on an unexpected reply as *unknown*, not a pass.
 - It uses an undocumented endpoint, which can change or be rate-limited without notice.

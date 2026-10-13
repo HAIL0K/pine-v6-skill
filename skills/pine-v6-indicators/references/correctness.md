@@ -1,6 +1,6 @@
 # Correctness: execution model, repainting, alerts, debugging
 
-Read this for any script that requests other timeframes or symbols, fires signals or alerts, or makes claims about numbers. Checked against the docs on 2026-10-13.
+How Pine runs, why indicators repaint, how to request other timeframes, and alerts. The last three sections (debugging, invariants, checking values) are the deeper checks to offer when a user asks to verify a script, or when its signals will drive real trades; simple visuals don't need them. Checked against the docs on 2026-10-13.
 
 ## Contents
 - Execution model
@@ -9,7 +9,7 @@ Read this for any script that requests other timeframes or symbols, fires signal
 - Alerts
 - Debugging with `log.*`
 - Invariants
-- Value check (loop step 6)
+- Checking values
 
 ## Execution model
 
@@ -25,7 +25,7 @@ Docs: [Execution model](https://www.tradingview.com/pine-script-docs/language/ex
 
 Docs: [Repainting](https://www.tradingview.com/pine-script-docs/concepts/repainting/).
 
-A script repaints when its values or signals on past bars differ from what it showed live. The audit during loop step 3 covers four things:
+A script repaints when its values or signals on past bars differ from what it showed live. When checking a script for repainting, look at four things:
 
 | Source | Repaints? | Fix |
 |---|---|---|
@@ -81,7 +81,7 @@ Docs: [Debugging](https://www.tradingview.com/pine-script-docs/writing/debugging
 
 ## Invariants
 
-Each script states what must always hold, and checks it when `debugMode` is on. Typical invariants:
+When verifying a script, add a `debugMode` input (off by default) that checks what must always hold, and logs a `log.error` when it doesn't. Typical invariants:
 - Bands: `upper >= basis` and `basis >= lower` whenever all three are not `na`.
 - Oscillators stay inside their range (RSI 0 to 100, a stochastic 0 to 100).
 - A signal never fires on an unconfirmed bar, if the spec bans repainting: `if debugMode and signal and not barstate.isconfirmed`, then `log.error(...)`.
@@ -89,7 +89,7 @@ Each script states what must always hold, and checks it when `debugMode` is on. 
 
 The invariants catch logic errors that compile cleanly. With them in place, "0 `log.error` lines" becomes a check that means something.
 
-## Value check (loop step 6)
+## Checking values
 
 The compiler checks syntax; this check covers the maths.
 

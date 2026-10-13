@@ -1,97 +1,87 @@
 ---
 name: pine-v6-indicators
-description: Write, fix, port or optimise TradingView Pine Script v6 indicators (indicator() scripts that plot, draw, alert or show tables), and verify them by compiling, checking runtime errors and comparing values. Use when the user asks for a Pine Script or TradingView indicator, overlay, oscillator, dashboard or multi-timeframe tool; pastes //@version=4/5/6 code to fix or port; or quotes a Pine compile or runtime error (CExxxxx, RExxxxx). Also covers the indicator side of strategy() scripts (plots, drawings, alerts), but not order logic or backtest evaluation.
+description: Write, fix, convert or improve TradingView Pine Script v6 indicators (indicator() scripts that plot, draw, alert or show tables). Use when the user asks for a TradingView indicator, overlay, oscillator, dashboard or alert; pastes Pine code to fix or convert from v4/v5; quotes a Pine compile or runtime error; or asks why an indicator repaints or looks different live. Also covers the visual and alert side of strategy() scripts, but not order logic or backtest evaluation.
 ---
 
 # Pine Script v6 indicators
 
-Write TradingView indicators in Pine Script v6, then prove they work. A script counts as done when the checks in the loop below have passed. Looking right is not enough. The official manual is the authority: https://www.tradingview.com/pine-script-docs/ (reference manual: https://www.tradingview.com/pine-script-reference/v6/). The reference files here hold the parts models most often get wrong. Each file names its docs sources and the date they were checked, and `references/pine-v6-gotchas.md` marks every rule as *documented* or *observed*.
+The user wants a TradingView indicator that works the first time they paste it. Give them clean v6 code, a short note on how to use it, and an honest statement of whether it was compiled. Keep explanations short: most users are traders, not programmers.
 
-## The loop
+## What users ask for, and what to give back
 
-Run every step. When a step cannot run in the current setup, say so on the hand-off's *Not verified* line. Never skip it silently.
+| They ask | Give back |
+|---|---|
+| "Make me an indicator that…" | The complete script, plus 3–5 lines covering what it shows, how to add it, and what the main inputs do. |
+| "Fix this error" (pasted error or code) | The corrected script, and one or two sentences on what was wrong. |
+| "Convert my v4/v5 script to v6" | The ported script and a short list of what changed. Behaviour stays the same unless a v6 rule forces a change; say so if one does. |
+| "Add alerts / a table / a higher timeframe / colours" | The updated script, changing only what was asked. |
+| "Why does it repaint / look different live?" | A plain-language reason and a fixed version (`references/correctness.md#repainting`). |
 
-1. **Spec.** In one short block, write down the inputs, the outputs (plots, drawings, alerts, tables), the pane (overlay or separate), the intended timeframes, and whether the indicator may repaint. The default is that it may not. If the request is clear, pick defaults and state them; ask only when a choice changes the output.
-2. **Write.** Follow the skeleton below and read `references/pine-v6-gotchas.md` before writing. Read the matching reference for the job:
-   - `references/correctness.md` for any `request.*()`, signal or alert;
-   - `references/visuals-cookbook.md` for drawings or tables;
-   - `references/limits-and-performance.md` for loops, arrays or heavy history.
+Build clear requests straight away. Pick sensible defaults and mention them in one line. Ask a question only when the answer changes the result, such as an unspecified overlay-or-pane choice for something that could go either way.
 
-   Add a `debugMode` input that guards the script's invariants (see `references/correctness.md#invariants`).
-3. **Static check.** Go through the checklist at the end of this file: v6 traps, budget counts, and the repainting audit.
-4. **Compile.**
-   - *With a TradingView MCP connected:* follow `references/tradingview-mcp.md`. Inject, compile, read errors, fix, and repeat until there are 0 errors. Fix every warning or justify it in one line.
-   - *Without one:* give the user the file and ask them to paste the Pine Editor's full error and warning output. Iterate on what they paste. Never claim a clean compile you did not see.
-5. **Runtime.** A clean compile can still fail when the script runs, with errors such as RE10139 (memory) or RE10143 (historical buffer). Run the script on at least two symbols and two timeframes, one of them intraday. A failing study shows an error icon next to its name in the chart legend (observed UI behaviour, not documented). With the MCP, look for it in a chart screenshot; without one, ask the user. Stop when no study shows an error and the Pine Logs hold no `log.error` from the `debugMode` guards.
-6. **Values.** Recompute the core series independently, for example in Python from the same OHLCV. Compare it with the script's own `log.info` spot prints at 5 or more bars spread across history; read them with the MCP's console tool, or ask the user to paste the Pine Logs. Chart read-outs show only the bar under the crosshair, so they are not a source for historical values. The tolerance is one tick, or 1e-6 relative for derived values. A mismatch is a bug until it is explained.
-7. **Repainting.** Confirm that every signal and higher-timeframe value uses a non-repainting pattern (`references/correctness.md#repainting`), unless the spec allowed repainting. With the MCP, step through bar replay and check that confirmed signals do not move.
-8. **Visual.** Take a screenshot, or ask the user to look. Judge the result against the spec, not against "looks fine".
-9. **Hand-off.** Report verification as numbers, for example: "0 compile errors, 0 warnings, 0 runtime errors on 2 symbols × 2 timeframes, 5 of 5 spot bars match". Then give a *Not verified* line, which lists every step above that could not run.
+## Writing the script
 
-## Script skeleton
+Before writing, skim `references/pine-v6-gotchas.md`: these are the v6 rules models most often break. Open the other references only when the job needs them:
+- `references/visuals-cookbook.md` for lines, boxes, labels, tables and colours.
+- `references/correctness.md` for other timeframes (`request.security()`), signals, alerts and repainting.
+- `references/limits-and-performance.md` when the script loops, uses many drawings, or is slow.
+
+Defaults:
+- Start with `//@version=6`. For conversions, use the gotchas list rather than just bumping the version number.
+- Make lengths and colours inputs, each with a clear title. Group inputs with `group =` when there are more than a few.
+- Put bands, averages and levels on the price chart (`overlay = true`). Put oscillators in their own pane.
+- Use built-in `ta.*` functions, not hand-written loops.
+- Add an alert for each clear signal. Fire signals on closed bars (`barstate.isconfirmed`) so they don't flicker or vanish.
+- Create tables and single live lines once with `var`, then update them.
+- Save the script to a `.pine` file unless the user prefers another extension. On later changes, edit that file rather than re-pasting everything.
+- If the user's own existing code has a style, keep to it.
 
 ```pine
 //@version=6
-indicator("Name", shorttitle = "Short", overlay = true)
+indicator("SMA cross", overlay = true)
 
-// ---- Inputs ----
-int   lengthInput = input.int(20, "Length", minval = 1, group = "Settings")
-color upColor     = input.color(color.teal, "Up color", group = "Style")
-bool  debugMode   = input.bool(false, "Debug checks", group = "Debug")
+int   lengthInput = input.int(20, "Length", minval = 1)
+color lineColor   = input.color(color.orange, "Line colour")
 
-// ---- Calculations ----
-float basis = ta.sma(close, lengthInput)
-float hh    = ta.highest(high, lengthInput)  // stateful ta.* calls stay in the global scope
-float ll    = ta.lowest(low, lengthInput)
+float sma    = ta.sma(close, lengthInput)
+bool  crossUp = ta.crossover(close, sma) and barstate.isconfirmed
 
-// ---- Invariants (debugMode) ----
-if debugMode and not na(basis) and (basis > hh or basis < ll)
-    log.error("basis outside the high/low range at bar {0}", bar_index)
-if debugMode and (bar_index % 500 == 0 or barstate.islast)
-    log.info("bar {0} basis {1}", bar_index, basis)  // spot prints for the value check
-
-// ---- Visuals ----
-plot(basis, "Basis", color = upColor, linewidth = 2)
-
-// ---- Alerts ----
-bool crossUp = ta.crossover(close, basis) and barstate.isconfirmed
-alertcondition(crossUp, "Cross up", "{{ticker}} closed above the basis")
+plot(sma, "SMA", color = lineColor, linewidth = 2)
+plotshape(crossUp, "Cross up", style = shape.triangleup, location = location.belowbar, color = color.teal, size = size.small)
+alertcondition(crossUp, "Close above SMA", "{{ticker}} closed above the SMA")
 ```
 
-Section order: version, declaration, inputs (each with a title and a `group`), calculations, invariants, visuals, alerts.
+## Before handing it over
 
-## Defaults unless told otherwise
+Run through these quickly. Together they catch most first-paste failures:
+- No `na` on a `bool`, and no number used as a bool without `bool(...)`.
+- Stateful `ta.*` calls (crossover, rsi, highest, …) sit in the global scope, never only inside an `if`, a ternary, or the right side of `and`/`or`.
+- No `transp =`. Use `color.new(color, transparency)`.
+- No `x == na`; use `na(x)`.
+- `request.security()` for another timeframe uses the no-repaint form (`references/correctness.md#repainting`).
+- Every `switch` or `if` that returns a style has a `default` or `else`.
 
-- Use `//@version=6`. When porting, never just bump the version number; port with `references/pine-v6-gotchas.md`.
-- Prefer built-in `ta.*` functions to hand-rolled loops. They are tested and faster.
-- Put bands, moving averages and levels on the price pane (`overlay = true`). Put oscillators in their own pane.
-- Signals fire on confirmed bars only (`barstate.isconfirmed`), unless the spec says otherwise.
-- Add an alert for every clear signal. Use `alertcondition()` for static messages and `alert()` when the message needs runtime values (`references/correctness.md#alerts`).
-- Create persistent objects (tables, live lines, arrays) once with `var` and update them; never recreate them every bar.
-- Write the script to a `.pine` file, unless the user's house style says otherwise. On revisions, edit that file in place rather than re-pasting the whole script.
+## Compiling
 
-## House style (override per user)
+- **TradingView MCP connected:** put the script on the user's chart, compile it, and fix errors until it compiles cleanly. Take a screenshot to confirm it draws what was asked. Follow `references/tradingview-mcp.md`, and read its safety notes before saving: a careless save can overwrite another script.
+- **No MCP:** you can't compile. Say so plainly, then tell the user: "Paste it into the Pine Editor (bottom of the chart), click *Add to chart*, and send me any red error text." When they send an error, fix it and say briefly what changed.
 
-Teams often have their own conventions: the file extension, the input layout, whether long, short and exit signals are separate or combined, and naming. If a user or project states one, it wins over the defaults above. Ask once when a convention would materially change the script.
+Never say a script compiles or works unless you saw it compile.
 
-## Pre-hand-off checklist
+## Hand-over format
 
-- [ ] `//@version=6` is the first line.
-- [ ] No bare `na` is passed to an untyped function parameter. Cast it: `float(na)`.
-- [ ] No `[]` on a literal, a built-in constant or a UDT field. Use `(obj[1]).field`.
-- [ ] Every `if`/`switch` producing a value of a "unique" type (plot or line style, etc.) has an `else` or `default` branch.
-- [ ] No int or float is used as a bool without `bool(...)`. No bool can be `na`.
-- [ ] Every stateful `ta.*` call runs on every bar, in the global scope. None sits only inside an `if`, a ternary, or the right side of `and`/`or`.
-- [ ] There are no `x == na` or `x != na` comparisons; use `na(x)`.
-- [ ] Budgets are within limits: plot count ≤ 64, unique `request.*()` calls ≤ 40, drawings within their `max_*_count`, and history references within the buffer (`references/limits-and-performance.md`).
-- [ ] Repainting audit is done. Every `request.security()` call uses the `[1]` + `lookahead_on` pattern or is justified, and signals are gated on `barstate.isconfirmed`.
-- [ ] Inputs are titled and grouped. Colours and lengths are inputs, not hard-coded.
-- [ ] The hand-off states verification as numbers and has a *Not verified* line.
+Keep it short:
 
-## Reference files
+> **What it does:** one or two lines.
+> **Add it:** Pine Editor → paste → *Add to chart*. *(Skip this line if you added it via the MCP.)*
+> **Settings:** the inputs that matter, one line each.
+> **Status:** "Compiled cleanly on your chart" / "Not compiled here: paste it in and send me any error".
 
-- `references/pine-v6-gotchas.md`: v5-to-v6 breaking changes and observed compiler traps. Read it before every script.
-- `references/correctness.md`: the execution model, repainting, `request.security()` patterns, alerts, `log.*` debugging, invariants and the value check.
-- `references/limits-and-performance.md`: platform limits, the Pine Profiler, and optimisation patterns.
-- `references/visuals-cookbook.md`: plots, fills, shapes, lines, boxes, labels, tables and colours.
-- `references/tradingview-mcp.md`: the compile and verify loop through a TradingView Desktop MCP server, and its known hazards.
+## When more checking is worth it
+
+Some situations call for more than a clean compile. Offer the extra checks in `references/correctness.md` (repainting check, checking values against an independent calculation, testing on a second symbol and timeframe) when:
+- the user asks to verify it or asks "is this right?";
+- signals or alerts will drive real trades;
+- the maths is non-trivial (custom formulas, multi-timeframe logic, statistics).
+
+Don't run the extra checks on a simple plot or visual unless the user asks. For speed problems, see `references/limits-and-performance.md`.
