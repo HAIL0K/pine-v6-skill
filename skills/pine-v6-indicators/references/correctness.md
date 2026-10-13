@@ -48,7 +48,7 @@ float htfClose = noRepaintSecurity(syminfo.tickerid, tfInput, close)
 plot(htfClose, "HTF close (previous, confirmed)", color = color.purple, linewidth = 2)
 ```
 
-This gives the *previous confirmed* higher-timeframe value. That is the cost of not repainting: it lags one higher-timeframe bar. Say so in the hand-off.
+This gives the *previous confirmed* higher-timeframe value. That is the cost of not repainting: it lags one higher-timeframe bar. Say so in the hand-over.
 
 Do not quietly fill early `na`s from the request with the chart's own values (`na(htf) ? close : htf`). That mixes timeframes without telling anyone; leave them as `na`.
 
@@ -97,4 +97,4 @@ The compiler checks syntax; this check covers the maths.
 2. Get the script's values at those bars: with the MCP, read plotted values, tables or labels; without it, use the `log.info` spot prints the user pastes.
 3. Recompute the same quantity independently from the same OHLCV, for example in pandas. Do not port the Pine code line by line: an independent route is what catches a shared mistake. Match Pine's own definitions, such as `ta.rsi` using RMA (Wilder) smoothing and `ta.stdev` the population standard deviation, from the [reference manual](https://www.tradingview.com/pine-script-reference/v6/).
 4. Require a match within one tick, or 1e-6 relative for derived values. Report it as "N of N spot bars match".
-5. A mismatch is a bug until it is explained, for instance by a different data feed, session or adjustment. Write the explanation into the hand-off.
+5. A mismatch is a bug until it is explained, for instance by a different data feed, session or adjustment. Write the explanation into the hand-over.

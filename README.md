@@ -25,7 +25,7 @@ You get back the script, a few lines on how to add it and what the settings do, 
 
 Or copy the folder `skills/pine-v6-indicators/` into `~/.claude/skills/`.
 
-**claude.ai or Claude Desktop:** download `pine-v6-indicators.zip` from the [Releases](../../releases) page, or build it with `python scripts/build_zip.py`. Then upload it under *Settings → Capabilities → Skills*.
+**claude.ai or Claude Desktop:** download `pine-v6-indicators.zip` from the [Releases page](https://github.com/HAIL0K/pine-v6-skill/releases) and upload it in Claude's settings, under Skills.
 
 There's nothing to switch on: Claude uses the skill whenever you talk about Pine or TradingView indicators.
 

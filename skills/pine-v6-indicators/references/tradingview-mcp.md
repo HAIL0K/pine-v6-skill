@@ -25,7 +25,7 @@ Compile and visual are the normal path. The other rows are the deeper checks fro
 
 | Check | Tools | Pass when |
 |---|---|---|
-| Compile | `pine_set_source`, then `pine_smart_compile`; `pine_get_errors` | 0 errors; every warning fixed or justified |
+| Compile | `pine_set_source`, then `pine_smart_compile`; `pine_get_errors` | compiles cleanly (0 errors; fix warnings where you can, and mention any left) |
 | Runtime | `chart_set_symbol` and `chart_set_timeframe` for 2 symbols × 2 timeframes; `capture_screenshot` (region `chart`) to see the study legend; `pine_get_console` for Pine Logs | no red error mark on the study in the legend; no `log.error` lines. `chart_get_state` lists only study ids and names, not their error status, so it cannot pass this step. If you can't tell from the screenshot, ask the user. |
 | Values | `data_get_ohlcv` for the bars to recompute from; `pine_get_console` for the script's `log.info` spot prints | N of N spot bars match within tolerance. `data_get_study_values` reads only the bar under the crosshair, so use it for the last bar at most. |
 | Repainting | `replay_start`, `replay_step`, `replay_stop` | confirmed signals and higher-timeframe values do not change as replay advances |

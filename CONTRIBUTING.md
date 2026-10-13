@@ -26,6 +26,10 @@ docs/upstream/                     draft issues for the MCP authors (not filed)
 - Each reference names the docs pages it is based on and the date they were checked. In `pine-v6-gotchas.md`, mark every rule *documented* (with a link) or *observed* (seen in real compiles, not in the docs). When the live docs disagree with this repo, the docs win.
 - No personal names, local paths or client-specific tool names.
 
+## Releasing
+
+Push a tag such as `v1.0.0`. The release workflow runs the lint, builds `dist/pine-v6-indicators.zip` and attaches it to the GitHub release. Check that the zip is attached before sharing the link. To build it locally, run `python scripts/build_zip.py`.
+
 ## Checks
 
 ```
